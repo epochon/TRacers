@@ -79,8 +79,10 @@ class ProfessionalismBot:
             # For now, we allow it
             pass
         
-        # Message is appropriate
-        return True, message
+        # Censor vulgarity instead of blocking
+        censored_message = self._censor_vulgarity(message)
+
+        return True, censored_message
     
     def _contains_crisis_language(self, message_lower: str) -> bool:
         """Check for crisis/self-harm keywords"""
@@ -113,7 +115,27 @@ class ProfessionalismBot:
             count += len(matches)
         return count
     
-    def generate_warning_message(self, message: str) -> str:
+    def _censor_vulgarity(self, message: str) -> str:
+        """
+        Replace vulgar words with partially masked versions.
+        Example: 'shit' -> 's***'
+        """
+        censored = message
+
+        for word in self.vulgarity_list:
+            pattern = r'\b' + re.escape(word) + r'\b'
+
+            def replace(match):
+                w = match.group()
+                if len(w) > 1:
+                    return w[0] + '*' * (len(w) - 1)
+                return '*'
+
+            censored = re.sub(pattern, replace, censored, flags=re.IGNORECASE)
+
+        return censored
+
+    def generate_warning(self, message: str) -> str:
         """
         Generate a gentle warning message for user
         Educational tone, not punitive
@@ -150,4 +172,4 @@ def check_message(message: str) -> Tuple[bool, str]:
 
 def generate_warning(message: str) -> str:
     """Generate warning message for inappropriate content"""
-    return professionalism_bot.generate_warning_message(message)
+    return professionalism_bot.generate_warning(message)

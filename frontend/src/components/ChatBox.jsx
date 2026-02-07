@@ -62,9 +62,13 @@ export default function ChatBox({ title, type }) {
       /* ---- community/system ---- */
       if (data.type === 'chat_message' || data.type === 'system') {
         setMessages((prev) => {
-          // 🚫 prevent echo duplication
-          if (data.client_id && prev.some((m) => m.clientId === data.client_id)) {
-            return prev;
+          // Replace optimistic message if client_id matches
+          if (data.client_id) {
+            return prev.map((msg) =>
+              msg.clientId === data.client_id
+                ? { ...msg, text: data.message }
+                : msg
+            );
           }
 
           return [
@@ -79,6 +83,19 @@ export default function ChatBox({ title, type }) {
             }
           ];
         });
+      }
+
+      /* ---- counselor reply ---- */
+      if (data.type === 'counselor_message') {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: data.message,
+            sender: 'counselor',
+            timestamp: data.timestamp
+          }
+        ]);
       }
 
       /* ---- counselor reply ---- */

@@ -85,7 +85,17 @@ export default function SeniorChatBox() {
             }))
           );
         }
-
+        
+        if (data.type === 'message_sent') {
+            setMessages((prev) =>
+                prev.map((msg) =>
+                msg.clientId === data.client_id
+                    ? { ...msg, text: data.message }
+                    : msg
+                )
+            );
+            }
+            
         if (data.type === 'senior_message') {
           setMessages((prev) => [
             ...prev,
