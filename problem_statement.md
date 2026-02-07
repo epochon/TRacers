@@ -20,8 +20,8 @@ Current systems track performance (grades), but they don’t track the hurdles t
 - Automatically extracts events from academic calendars (PDFs) and syncs verified dates—such as exams, holidays, and deadlines—directly to Google Calendar.
 
 ## Technical Stack
-- Frontend: React, TypeScript
+- Frontend: React, TypeScript,Tailwind css
 - Backend: Node.js, Express
 - Database: PostgreSQL
-- API's:Groq,Hugging - Face,Google Authentication API
-- 
+- API's: Groq(LLM Interface),Hugging - Face,Google Authentication API
+  
