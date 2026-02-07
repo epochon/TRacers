@@ -1,4 +1,5 @@
-# Project: [Your Hackathon Project Name]
+# Project: Traces - Trajectory Connective system
+
 
 ## Goal
 What you're trying to build during the hackathon.
