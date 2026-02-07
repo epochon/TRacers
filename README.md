@@ -5,12 +5,12 @@ TRACES is a **trajectory-aware mentoring and support platform** designed to prev
 
 ---
 
-## 🚀 Goal
+##  Goal
 To build a **personalized, ethical, and AI-powered mentoring system** that supports students beyond academics by addressing financial, administrative, and social challenges early.
 
 ---
 
-## ❗ Problem Statement
+## Problem Statement
 Nearly **40% of student dropouts are caused by administrative and social friction**—such as scholarship delays, fee issues, housing problems, and language barriers—rather than academic failure.
 
 Existing student monitoring systems focus primarily on **grades and performance metrics**, failing to account for cumulative bureaucratic stress. As a result, students often feel overwhelmed and unsupported until they reach a point of no return.
@@ -19,7 +19,7 @@ TRACES shifts the focus from performance tracking to **trajectory tracking**.
 
 ---
 
-## 🔑 Key Features
+##  Key Features
 
 - **Bureaucratic Friction Tracking**  
   Monitors administrative and procedural hurdles—such as fee delays, policy confusion, and missed formalities—rather than relying only on academic performance.
@@ -47,7 +47,7 @@ TRACES shifts the focus from performance tracking to **trajectory tracking**.
 
 ---
 
-## 🧠 System Philosophy
+## System Philosophy
 TRACES is built on three core principles:
 - **Early detection over late correction**
 - **Ethical, non-intrusive AI**
@@ -55,7 +55,7 @@ TRACES is built on three core principles:
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Frontend
 <p>
@@ -96,18 +96,8 @@ TRACES is built on three core principles:
 
 ---
 
-## 📌 Future Enhancements
+## Future Enhancements
 - Distance-to-Irreversibility risk scoring
 - Ethics Agent for intervention validation
 - Counselor escalation workflows
 - Institution-level analytics dashboard
-
----
-
-## 🤝 Contribution
-This project is under active development. Contributions, ideas, and feedback are welcome.
-
----
-
-## 📄 License
-MIT License
