@@ -1,10 +1,10 @@
-# Project: Traces - Trajectory Connective system
+# Project: Traces - Trajectory-Aware Collective System for Student Retention
 
 
 ## Goal
 What you're trying to build during the hackathon.
 
-## Problem Statement
+## Problem Statement    
 The problem this project solves.
 
 ## Key Features
