@@ -1,0 +1,17 @@
+{
+    "DEFAULT": {
+        "attendance_policy": "Minimum 75% attendance mandatory. Medical leave requires certificate within 2 days.",
+        "medical_leave_policy": "Leave > 3 days requires Medical Officer approval.",
+        "internship_policy": "NOC issued only during semester breaks or final year projects."
+    },
+    "MIT": {
+        "attendance_policy": "85% attendance required. Condonation up to 10% on medical grounds.",
+        "medical_leave_policy": "Submit medical certificate to HoD.",
+        "internship_policy": "Allowed for 6 months in final semester."
+    },
+    "Stanford": {
+        "attendance_policy": "Class participation is graded.",
+        "medical_leave_policy": "Contact Vaden Health Center.",
+        "internship_policy": "Curricular Practical Training available."
+    }
+}

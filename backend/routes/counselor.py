@@ -162,7 +162,9 @@ async def get_student_details(
             "decision": latest_decision.decision if latest_decision else "NO_ASSESSMENT",
             "justification": latest_decision.justification if latest_decision else "",
             "aggregate_risk": latest_decision.aggregate_risk if latest_decision else 0.0,
-            "ethics_veto": latest_decision.ethics_veto if latest_decision else False
+            "ethics_veto": latest_decision.ethics_veto if latest_decision else False,
+            "distance_to_irreversibility": (latest_decision.meta_data or {}).get('distance_to_irreversibility', 100) if latest_decision else 100,
+            "headline": (latest_decision.meta_data or {}).get('headline', "No Data") if latest_decision else "No Data"
         },
         "agent_insights": [
             {

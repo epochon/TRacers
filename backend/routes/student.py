@@ -1,6 +1,6 @@
 """
-Student API Routes
-Endpoints for student dashboard, timeline, and chat access
+Updated Student API Routes
+Added endpoints for Senior Chat and GovConnect
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -38,11 +38,28 @@ class TimelineResponse(BaseModel):
 class DashboardResponse(BaseModel):
     """Student dashboard summary"""
     student_name: str
+    student_id: str
     total_friction_events: int
-    recent_friction_events: int  # Last 30 days
+    recent_friction_events: int
     current_risk_level: str
     support_available: bool
     trajectory_summary: str
+    distance_to_irreversibility: float = 1.0
+    headline: str = "Status Verified"
+
+
+# Global singleton for ML Coordinator
+COORDINATOR_INSTANCE = None
+
+def get_coordinator_singleton():
+    """Get or initialize the global coordinator instance"""
+    global COORDINATOR_INSTANCE
+    if COORDINATOR_INSTANCE is None:
+        print("Initializing Global ML Coordinator...")
+        from agents.coordinator_ml import CoordinatorAgentML
+        COORDINATOR_INSTANCE = CoordinatorAgentML()
+        print("Global ML Coordinator Initialized.")
+    return COORDINATOR_INSTANCE
 
 
 @router.get("/dashboard", response_model=DashboardResponse)
@@ -51,9 +68,20 @@ async def get_student_dashboard(
     db: Session = Depends(get_db)
 ):
     """
-    Get student dashboard summary
-    Shows non-clinical friction trajectory
+    Get student dashboard summary with ML-powered risk assessment
+    Shows non-clinical friction trajectory using trained models
     """
+    
+    # Get coordinator from singleton (should be pre-loaded by main.py)
+    try:
+        coordinator = get_coordinator_singleton()
+    except Exception as e:
+        print(f"Error getting coordinator: {e}")
+        # Fallback if initialization fails
+        coordinator = None
+    
+    # Get all events for student
+    
     # Get all events for student
     events = db.query(StudentEvent).filter(
         StudentEvent.student_id == current_user.id
@@ -63,26 +91,55 @@ async def get_student_dashboard(
     cutoff = datetime.utcnow() - timedelta(days=30)
     recent_events = [e for e in events if e.timestamp >= cutoff]
     
-    # Get latest coordinator decision if exists
-    latest_decision = db.query(CoordinatorDecision).filter(
-        CoordinatorDecision.student_id == current_user.id
-    ).order_by(CoordinatorDecision.timestamp.desc()).first()
-    
-    # Determine risk level and trajectory
-    if latest_decision:
-        risk_level = _map_decision_to_risk_level(latest_decision.decision)
-        trajectory = latest_decision.justification
+    # Use cached coordinator for real-time assessment
+    if events and coordinator:
+        try:
+            ml_result = coordinator.evaluate(events)
+            
+            risk_level = _map_decision_to_risk_level(ml_result['decision'])
+            trajectory = ml_result['justification']
+            distance = ml_result.get('distance_to_irreversibility', 1.0)
+            headline = ml_result.get('headline', "Status Verified")
+            
+            # Optionally save to database for history
+            try:
+                decision = CoordinatorDecision(
+                    student_id=current_user.id,
+                    decision=ml_result['decision'],
+                    aggregate_risk=ml_result['final_risk'],
+                    confidence=ml_result.get('confidence', 0.8),
+                    justification=trajectory,
+                    meta_data=ml_result.get('meta_data', {})
+                )
+                db.add(decision)
+                db.commit()
+            except Exception as e:
+                print(f"Warning: Could not save decision: {e}")
+                db.rollback()
+
+        except Exception as e:
+            print(f"Error in ML evaluation: {e}")
+            risk_level = "Processing Analysis"
+            trajectory = "System analysis currently processing in background. Please refresh shortly."
+            distance = 1.0
+            headline = "Pending Analysis"
     else:
+        # No events or coordinator not ready - use defaults
         risk_level = "Minimal friction"
-        trajectory = "No significant bureaucratic barriers detected"
+        trajectory = "No significant bureaucratic barriers detected (or system initializing)"
+        distance = 1.0
+        headline = "System Nominal"
     
     return DashboardResponse(
         student_name=current_user.full_name or current_user.username,
+        student_id=str(current_user.id),
         total_friction_events=len(events),
         recent_friction_events=len(recent_events),
         current_risk_level=risk_level,
         support_available=risk_level != "Minimal friction",
-        trajectory_summary=trajectory
+        trajectory_summary=trajectory,
+        distance_to_irreversibility=distance,
+        headline=headline
     )
 
 
@@ -123,6 +180,49 @@ async def get_student_timeline(
         recent_events=recent_count,
         trajectory_summary=summary
     )
+
+
+@router.get("/senior-chat")
+async def get_senior_chat_access(
+    current_user: User = Depends(get_current_student),
+):
+    """
+    Access to verified senior mentorship chat
+    """
+    return {
+        "available": True,
+        "description": "Connect with verified senior mentors",
+        "room_type": "senior",
+        "features": [
+            "Peer mentorship",
+            "Academic guidance",
+            "Campus navigation help",
+            "Experience sharing"
+        ],
+        "privacy_note": "Your identity is visible only to verified senior mentors"
+    }
+
+
+@router.get("/gov-connect")
+async def get_gov_connect_access(
+    current_user: User = Depends(get_current_student),
+):
+    """
+    Direct channel to institutional authorities
+    """
+    return {
+        "available": True,
+        "description": "Direct communication with institutional authorities",
+        "room_type": "gov",
+        "scope": [
+            "Scholarship issues",
+            "Hostel allotment",
+            "Exam fee problems",
+            "Administrative grievances"
+        ],
+        "response_policy": "Responses may take 24-48 hours depending on query volume",
+        "transparency_note": "All conversations are logged for institutional accountability"
+    }
 
 
 @router.get("/agent-analysis")
@@ -192,7 +292,15 @@ async def get_support_resources(
             "available": True,
             "description": "Request connection with a human counselor",
             "note": "You control if and when to share your identity"
-        }
+        },
+        "senior_chat": {
+            "available": True,
+            "description": "Connect with verified senior mentors",
+        },
+        "gov_connect": {
+            "available": True,
+            "description": "Direct channel to institutional authorities",
+        },
     }
 
 
