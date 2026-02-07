@@ -20,7 +20,7 @@ class ProfessionalismBot:
     def __init__(self):
         # Profanity and vulgarity
         self.vulgarity_list = [
-            'fuck', 'shit', 'damn', 'bitch', 'asshole', 'bastard',
+            'fuck', 'fucking', 'shit', 'damn', 'bitch', 'asshole', 'bastard',
             'crap', 'piss', 'dick', 'cock', 'pussy','nigga'
         ]
         
@@ -43,6 +43,9 @@ class ProfessionalismBot:
             'self harm', 'hurt myself', 'no point living'
         ]
     
+        # Pronouns/markers used to detect targeted insults
+        self.second_person_markers = [r"you", r"you're", r"youre", r"u"]
+
     def check_message(self, message: str) -> Tuple[bool, str]:
         """
         Check message for inappropriate content
@@ -98,9 +101,21 @@ class ProfessionalismBot:
     
     def _contains_personal_attack(self, message_lower: str) -> bool:
         """Check for personal attacks or harassment"""
+        # Direct pattern matches (explicit phrases)
         for pattern in self.attack_patterns:
             if pattern in message_lower:
                 return True
+
+        # Targeted insults using vulgar words (e.g., "you are a bastard")
+        # If a vulgarity appears close to a second-person marker, treat as attack
+            for vulgar in self.vulgarity_list:
+                # Simple, robust patterns: up to ~5 words between pronoun and insult
+                pronouns = r"(?:you|you're|youre|u)"
+                pattern1 = r"\b" + pronouns + r"\b(?:\s+\w+){0,5}\s+\b" + re.escape(vulgar) + r"\b"
+                pattern2 = r"\b" + re.escape(vulgar) + r"\b(?:\s+\w+){0,5}\s+\b" + pronouns + r"\b"
+                if re.search(pattern1, message_lower) or re.search(pattern2, message_lower):
+                    return True
+
         return False
     
     def _count_vulgarity(self, message_lower: str) -> int:
