@@ -8,7 +8,8 @@ from typing import Dict, List
 from datetime import datetime
 import json
 import uuid
-
+# ---------------- MODERATION ----------------
+from moderation.professionalism_bot import check_message, generate_warning
 
 class CounselorChatManager:
     """
@@ -81,18 +82,26 @@ class CounselorChatManager:
         await self._send_active_sessions(counselor_id)
     
     async def handle_student_message(self, session_id: str, message: str):
-        """
-        Handle incoming message from student
-        Includes crisis detection
-        """
+
         websocket = self.active_sessions.get(session_id)
         if not websocket:
             return
-        
-        # Check for crisis keywords
+
+        is_allowed, processed_message = check_message(message)
+
+        if not is_allowed:
+            await websocket.send_json({
+                "type": "moderation_notice",
+                "message": generate_warning(message),
+                "timestamp": datetime.utcnow().isoformat()
+            })
+            return
+
+        message = processed_message
+        # --------------------------------------------
+
         crisis_detected = self._detect_crisis(message)
-        
-        # Store message
+
         msg_data = {
             'type': 'student_message',
             'session_id': session_id,
@@ -100,31 +109,32 @@ class CounselorChatManager:
             'timestamp': datetime.utcnow().isoformat(),
             'crisis_flag': crisis_detected
         }
+
         self.message_history[session_id].append(msg_data)
-        
-        # ✅ FIX: send message back to the student (echo)
+
+        # Echo back to student (CENSORED version)
         await websocket.send_json({
             'type': 'student_message',
             'message': message,
             'timestamp': msg_data['timestamp']
         })
-        
-        # Send to assigned counselor
+
+        # Send to counselor if assigned
         metadata = self.session_metadata.get(session_id, {})
         counselor_id = metadata.get('assigned_counselor')
-        
+
         if counselor_id and counselor_id in self.active_counselors:
             counselor_ws = self.active_counselors[counselor_id]
             await counselor_ws.send_json(msg_data)
-            
-            # If crisis detected, send alert
+
             if crisis_detected:
                 await counselor_ws.send_json({
                     'type': 'crisis_alert',
                     'session_id': session_id,
-                    'message': 'Crisis keywords detected in student message',
+                    'message': 'Crisis keywords detected',
                     'requires_immediate_attention': True
                 })
+
 
     
     async def handle_counselor_message(self, counselor_id: str, session_id: str, message: str):

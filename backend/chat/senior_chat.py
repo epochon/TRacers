@@ -7,6 +7,7 @@ from fastapi import WebSocket
 from typing import Dict, List, Optional
 from datetime import datetime
 import uuid
+from moderation.professionalism_bot import check_message, generate_warning
 
 
 class SeniorChatManager:
@@ -242,7 +243,23 @@ class SeniorChatManager:
         session = self.active_sessions.get(session_id)
         if not session:
             return
-        
+
+        # ------------------ MODERATION (STUDENT ONLY) ------------------
+
+        is_allowed, processed_message = check_message(message)
+
+        if not is_allowed:
+            student_ws = self.student_connections.get(student_id)
+            if student_ws:
+                await student_ws.send_json({
+                    "type": "moderation_notice",
+                    "message": generate_warning(message)
+                })
+            return
+
+    # Use censored version
+        message = processed_message
+
         # Create message data
         msg_data = {
             'type': 'student_message',
