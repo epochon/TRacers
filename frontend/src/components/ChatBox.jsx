@@ -172,13 +172,13 @@ export default function ChatBox({ title, type }) {
           >
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 ${m.sender === 'student'
-                ? 'bg-black text-white rounded-tr-none shadow-sm'
+                ? 'bg-black text-black rounded-tr-none shadow-sm'
                 : m.sender === 'system'
                   ? 'bg-red-50 text-red-700 border border-red-100'
                   : 'bg-gray-100 text-foreground rounded-tl-none border border-border/50'
                 }`}
             >
-              <p className="text-sm font-medium leading-relaxed">{m.text}</p>
+              <p className="text-white text-sm font-medium leading-relaxed">{m.text}</p>
               <div className={`text-[10px] mt-1 font-semibold ${m.sender === 'student' ? 'text-gray-300' : 'text-muted-foreground'}`}>
                 {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>
